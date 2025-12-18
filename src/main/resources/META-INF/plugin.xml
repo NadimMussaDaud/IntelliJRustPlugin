@@ -11,5 +11,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow factoryClass="com.github.nadimmussadaud.intellijrustplugin.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
         <postStartupActivity implementation="com.github.nadimmussadaud.intellijrustplugin.startup.MyProjectActivity" />
+        <configurationType
+                implementation="com.github.nadimmussadaud.intellijrustplugin.CustomExecutableConfigurationType"/>
     </extensions>
 </idea-plugin>
