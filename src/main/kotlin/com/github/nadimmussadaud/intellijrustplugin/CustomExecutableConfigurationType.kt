@@ -12,8 +12,8 @@ class CustomExecutableConfigurationType : ConfigurationType {
         return "Custom Executable"
     }
 
-    override fun getConfigurationTypeDescription(): @Nls(capitalization = Nls.Capitalization.Sentence) String? {
-        return "RUST,CARGO & Other Custom Executables"
+    override fun getConfigurationTypeDescription(): @Nls(capitalization = Nls.Capitalization.Sentence) String {
+        return "RUST,CARGO & OTHER Custom Executables"
     }
 
     override fun getIcon(): Icon {
