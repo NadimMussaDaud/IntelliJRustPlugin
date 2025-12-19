@@ -9,6 +9,8 @@ import com.intellij.execution.configurations.RuntimeConfigurationException
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.JDOMExternalizerUtil
+import org.jdom.Element
 import java.io.File
 
 enum class ExecutableType {
@@ -30,12 +32,10 @@ class CustomExecutableRunConfig(
     override fun checkConfiguration() {
         when (executableType) {
             ExecutableType.RUST -> {
-                if(!hasExecutableInPath("rustc"))
-                    throw RuntimeConfigurationException("Rust cannot be specified for this executable")
+
             }
             ExecutableType.CARGO -> {
-                if(!hasExecutableInPath("cargo"))
-                    throw RuntimeConfigurationException("Cargo cannot be specified for this executable")
+
             }
             ExecutableType.CUSTOM -> {
                 if(customExecutablePath == null || customExecutablePath!!.isBlank()) {
@@ -54,6 +54,22 @@ class CustomExecutableRunConfig(
 
     override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration?> {
         return CustomExecutableSettingsUI()
+    }
+
+    override fun writeExternal(element: Element) {
+        super.writeExternal(element)
+        JDOMExternalizerUtil.writeField(element, "executableType" , executableType.name)
+        JDOMExternalizerUtil.writeField(element, "arguments" , arguments)
+        JDOMExternalizerUtil.writeField(element, "customExecutablePath" , customExecutablePath)
+    }
+
+    override fun readExternal(element: Element) {
+        super.readExternal(element)
+        JDOMExternalizerUtil.readField(element, "executableType")?.let {
+            executableType = ExecutableType.valueOf(it)
+        }
+        customExecutablePath = JDOMExternalizerUtil.readField(element, "customExecutablePath") ?: ""
+        arguments = JDOMExternalizerUtil.readField(element, "arguments") ?: ""
     }
 
     override fun getState(

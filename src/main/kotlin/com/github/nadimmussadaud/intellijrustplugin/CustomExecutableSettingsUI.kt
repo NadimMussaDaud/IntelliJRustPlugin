@@ -9,12 +9,12 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.FormBuilder
+import java.awt.event.ItemEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.JTextField
 
 
-class CustomExecutableSettingsUI : SettingsEditor<CustomExecutableRunConfig>() {
+class CustomExecutableSettingsUI() : SettingsEditor<CustomExecutableRunConfig>() {
     private val executableTypesDropdown = ComboBox(ExecutableType.entries.toTypedArray())
     private val customExecutableField = TextFieldWithBrowseButton()
     private val argumentsField = JBTextField()
@@ -28,13 +28,24 @@ class CustomExecutableSettingsUI : SettingsEditor<CustomExecutableRunConfig>() {
         descriptor.description = "Choose path to your custom executable."
 
         customExecutableField.addActionListener(
-            ComponentWithBrowseButton.BrowseFolderActionListener<JTextField>(
+            ComponentWithBrowseButton.BrowseFolderActionListener(
                 customExecutableField,
                 null, //Project context not necessary for the task
                 descriptor,
                 TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
             )
         )
+
+        customExecutableField.addActionListener {
+            fireEditorStateChanged()
+        }
+
+        executableTypesDropdown.addItemListener { e ->
+            if(e.stateChange == ItemEvent.SELECTED) {
+                updateCustomExecutableField()
+                fireEditorStateChanged()
+            }
+        }
 
         panel = FormBuilder.createFormBuilder()
             .addLabeledComponent(
@@ -56,12 +67,13 @@ class CustomExecutableSettingsUI : SettingsEditor<CustomExecutableRunConfig>() {
                 false
             )
             .panel
+            updateCustomExecutableField()
     }
 
     override fun resetEditorFrom(config: CustomExecutableRunConfig) {
         executableTypesDropdown.selectedItem = config.executableType
         argumentsField.text = config.arguments
-        customExecutableField.text = config.customExecutablePath!!
+        customExecutableField.text = config.customExecutablePath ?: ""
     }
 
     override fun applyEditorTo(config: CustomExecutableRunConfig) {
@@ -72,5 +84,11 @@ class CustomExecutableSettingsUI : SettingsEditor<CustomExecutableRunConfig>() {
 
     override fun createEditor(): JComponent {
         return panel
+    }
+
+    private fun updateCustomExecutableField() {
+        val isCustom = executableTypesDropdown.selectedItem == ExecutableType.CUSTOM
+        customExecutableField.isEnabled = isCustom
+        customExecutableField.textField.isEditable = isCustom
     }
 }
