@@ -6,7 +6,7 @@ import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.project.Project
 
 class CustomExecutableConfigFactory(type: ConfigurationType) : ConfigurationFactory(type) {
-    override fun createTemplateConfiguration(p0: Project): RunConfiguration {
+    override fun createTemplateConfiguration(project: Project): RunConfiguration {
         TODO("Not yet implemented")
     }
 }
