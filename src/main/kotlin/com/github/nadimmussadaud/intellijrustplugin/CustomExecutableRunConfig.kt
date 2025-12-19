@@ -13,42 +13,27 @@ import com.intellij.openapi.util.JDOMExternalizerUtil
 import org.jdom.Element
 import java.io.File
 
-enum class ExecutableType {
-    RUST(),
-    CARGO(),
-    CUSTOM()
-}
-
 class CustomExecutableRunConfig(
     project: Project,
     factory: ConfigurationFactory,
     name: String
 ) : RunConfigurationBase<CustomExecutableRunConfig>(project, factory, name) {
 
-    var executableType: ExecutableType = ExecutableType.RUST
+    var executableType: String = ""
     var customExecutablePath: String? = null
     var arguments: String? = null
 
     override fun checkConfiguration() {
-        when (executableType) {
-            ExecutableType.RUST -> {
 
-            }
-            ExecutableType.CARGO -> {
-
-            }
-            ExecutableType.CUSTOM -> {
-                if(customExecutablePath == null || customExecutablePath!!.isBlank()) {
-                    throw RuntimeConfigurationException("Please specify a custom executable path")
-                }
-                val file = File(customExecutablePath!!)
-                if(!file.exists()) {
-                    throw RuntimeConfigurationException("File specified as custom executable doesn't exist")
-                }
-                if(!file.canExecute()) {
-                    throw RuntimeConfigurationException("File specified as custom executable is not executable.")
-                }
-            }
+        if(customExecutablePath == null || customExecutablePath!!.isBlank()) {
+            throw RuntimeConfigurationException("Please specify a custom executable path")
+        }
+        val file = File(customExecutablePath!!)
+        if(!file.exists()) {
+            throw RuntimeConfigurationException("File specified as custom executable doesn't exist")
+        }
+        if(!file.canExecute()) {
+            throw RuntimeConfigurationException("File specified as custom executable is not executable.")
         }
     }
 
@@ -58,7 +43,7 @@ class CustomExecutableRunConfig(
 
     override fun writeExternal(element: Element) {
         super.writeExternal(element)
-        JDOMExternalizerUtil.writeField(element, "executableType" , executableType.name)
+        JDOMExternalizerUtil.writeField(element, "executableType" , executableType)
         JDOMExternalizerUtil.writeField(element, "arguments" , arguments)
         JDOMExternalizerUtil.writeField(element, "customExecutablePath" , customExecutablePath)
     }
@@ -66,7 +51,7 @@ class CustomExecutableRunConfig(
     override fun readExternal(element: Element) {
         super.readExternal(element)
         JDOMExternalizerUtil.readField(element, "executableType")?.let {
-            executableType = ExecutableType.valueOf(it)
+            executableType = it
         }
         customExecutablePath = JDOMExternalizerUtil.readField(element, "customExecutablePath") ?: ""
         arguments = JDOMExternalizerUtil.readField(element, "arguments") ?: ""
@@ -77,13 +62,5 @@ class CustomExecutableRunConfig(
         executionEnv: ExecutionEnvironment
     ): RunProfileState {
         return CustomExecutableRunState(executionEnv, this);
-    }
-
-    private fun hasExecutableInPath(compiler: String): Boolean {
-        return when (System.getProperty("os.name").lowercase()) {
-            "windows" -> Runtime.getRuntime().exec(arrayOf("where", compiler)).waitFor() == 0
-            "macos" -> Runtime.getRuntime().exec(arrayOf("which", compiler)).waitFor() == 0
-            else -> false
-        }
     }
 }

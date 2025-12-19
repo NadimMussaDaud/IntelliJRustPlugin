@@ -13,11 +13,11 @@ class CustomExecutableConfigurationType : ConfigurationType {
     }
 
     override fun getConfigurationTypeDescription(): @Nls(capitalization = Nls.Capitalization.Sentence) String {
-        return "RUST,CARGO & OTHER Custom Executables"
+        return "Running configuration for RUST and CARGO executable"
     }
 
     override fun getIcon(): Icon {
-        return AllIcons.Actions.Execute
+        return AllIcons.Language.Rust
     }
 
     override fun getId(): @NonNls String {

@@ -9,7 +9,9 @@ import com.intellij.openapi.ui.TextComponentAccessor
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.util.preferredWidth
 import com.intellij.util.ui.FormBuilder
+import com.intellij.util.ui.JBUI
 import java.awt.event.ItemEvent
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
@@ -48,6 +50,10 @@ class CustomExecutableSettingsUI(project : Project) : SettingsEditor<CustomExecu
             }
         }
 
+        customExecutableField.isEditable = false
+        executableTypesDropdown.setPrototypeDisplayValue("rustc — /home/user/.rustup/toolchains/stable-.../bin/rustc")
+        executableTypesDropdown.preferredWidth = JBUI.scale(480)
+
         val loadingModel = DefaultComboBoxModel(arrayOf("Looking for rustc/cargo..."))
         executableTypesDropdown.model = loadingModel
 
@@ -64,7 +70,7 @@ class CustomExecutableSettingsUI(project : Project) : SettingsEditor<CustomExecu
                 false
             )
             .addLabeledComponent(
-                JBLabel("Custom Executable:"),
+                JBLabel("Executable File:"),
                 customExecutableField,
                 1,
                 false
@@ -85,7 +91,7 @@ class CustomExecutableSettingsUI(project : Project) : SettingsEditor<CustomExecu
     }
 
     override fun applyEditorTo(config: CustomExecutableRunConfig) {
-        config.executableType = executableTypesDropdown.selectedItem as ExecutableType
+        config.executableType = executableTypesDropdown.selectedItem.toString()
         config.arguments = argumentsField.text
         config.customExecutablePath = customExecutableField.text
     }
@@ -94,9 +100,4 @@ class CustomExecutableSettingsUI(project : Project) : SettingsEditor<CustomExecu
         return panel
     }
 
-    private fun updateCustomExecutableField() {
-        val isCustom = executableTypesDropdown.selectedItem == ExecutableType.CUSTOM
-        customExecutableField.isEnabled = isCustom
-        customExecutableField.textField.isEditable = isCustom
-    }
 }

@@ -9,7 +9,7 @@ import java.nio.file.Paths
 
 class Helper {
     data class SdkChoice(val id: String, val label: String, val path: String? = null) {
-        override fun toString() = label // ComboBox shows label
+        override fun toString() = path.toString()
     }
 
     fun discoverRustToolchains(project: com.intellij.openapi.project.Project?, onDone: (List<SdkChoice>) -> Unit) {
@@ -30,7 +30,7 @@ class Helper {
                     }
                 }
 
-                // 2) Find rustc/cargo on PATH directories
+                // Find rustc/cargo on PATH directories
                 for (dir in pathEnv.split(sep)) {
                     if (dir.isBlank()) continue
                     try {
@@ -44,7 +44,7 @@ class Helper {
                     } catch (_: Exception) { /* ignore invalid PATH entries */ }
                 }
 
-                // 3) Look in ~/.cargo/bin and ~/.rustup/toolchains/*/bin
+                // Look in ~/.cargo/bin and ~/.rustup/toolchains/*/bin
                 try {
                     val cargoBin = Paths.get(home, ".cargo", "bin")
                     if (Files.isDirectory(cargoBin)) {
