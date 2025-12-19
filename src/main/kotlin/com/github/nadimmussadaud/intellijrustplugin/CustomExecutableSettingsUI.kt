@@ -2,6 +2,7 @@ package com.github.nadimmussadaud.intellijrustplugin
 
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.options.SettingsEditor
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.ComponentWithBrowseButton
 import com.intellij.openapi.ui.TextComponentAccessor
@@ -10,12 +11,13 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.FormBuilder
 import java.awt.event.ItemEvent
+import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 import javax.swing.JPanel
 
 
-class CustomExecutableSettingsUI() : SettingsEditor<CustomExecutableRunConfig>() {
-    private val executableTypesDropdown = ComboBox(ExecutableType.entries.toTypedArray())
+class CustomExecutableSettingsUI(project : Project) : SettingsEditor<CustomExecutableRunConfig>() {
+    private val executableTypesDropdown = ComboBox<String>()
     private val customExecutableField = TextFieldWithBrowseButton()
     private val argumentsField = JBTextField()
 
@@ -23,8 +25,8 @@ class CustomExecutableSettingsUI() : SettingsEditor<CustomExecutableRunConfig>()
 
     init {
         val descriptor =
-            FileChooserDescriptorFactory.createSingleFolderDescriptor()
-        descriptor.title = "Select executable..."
+            FileChooserDescriptorFactory.createSingleFileDescriptor()
+        descriptor.title = "Select Executable File"
         descriptor.description = "Choose path to your custom executable."
 
         customExecutableField.addActionListener(
@@ -42,9 +44,16 @@ class CustomExecutableSettingsUI() : SettingsEditor<CustomExecutableRunConfig>()
 
         executableTypesDropdown.addItemListener { e ->
             if(e.stateChange == ItemEvent.SELECTED) {
-                updateCustomExecutableField()
                 fireEditorStateChanged()
             }
+        }
+
+        val loadingModel = DefaultComboBoxModel(arrayOf("Looking for rustc/cargo..."))
+        executableTypesDropdown.model = loadingModel
+
+        Helper().discoverRustToolchains(project) { choices ->
+            executableTypesDropdown.model = DefaultComboBoxModel(choices.map { it.toString() }.toTypedArray())
+            fireEditorStateChanged()
         }
 
         panel = FormBuilder.createFormBuilder()
@@ -67,7 +76,6 @@ class CustomExecutableSettingsUI() : SettingsEditor<CustomExecutableRunConfig>()
                 false
             )
             .panel
-            updateCustomExecutableField()
     }
 
     override fun resetEditorFrom(config: CustomExecutableRunConfig) {

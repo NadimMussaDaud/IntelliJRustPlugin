@@ -53,7 +53,7 @@ class CustomExecutableRunConfig(
     }
 
     override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration?> {
-        return CustomExecutableSettingsUI()
+        return CustomExecutableSettingsUI(project)
     }
 
     override fun writeExternal(element: Element) {
