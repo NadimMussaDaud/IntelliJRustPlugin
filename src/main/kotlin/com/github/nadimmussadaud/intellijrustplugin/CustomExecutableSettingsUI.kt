@@ -55,13 +55,13 @@ class CustomExecutableSettingsUI(project : Project) : SettingsEditor<CustomExecu
 
         // Set minimal width/columns for fields going with IntelliJ Guidelines
         executableTypesDropdown.preferredWidth = JBUI.scale(480)
-        customExecutableField.textField.columns = 100 // 100 characters
-        argumentsField.columns = 100 // 100 characters
+        customExecutableField.textField.columns = 60 // characters width
+        argumentsField.columns = 60 // characters width
 
         // Setting accessibility for fields
-        executableTypesDropdown.accessibleContext.accessibleName = "Executable Types"
-        customExecutableField.accessibleContext.accessibleName = "Executable Name"
-        argumentsField.accessibleContext.accessibleName = "Arguments for executable"
+        executableTypesDropdown.accessibleContext.accessibleName = "Executable type"
+        customExecutableField.accessibleContext.accessibleName = "Executable file"
+        argumentsField.accessibleContext.accessibleName = "Arguments"
 
         // Tips for filling the camps
         executableTypesDropdown.toolTipText = "Choose rustc/cargo from PATH"
@@ -114,6 +114,7 @@ class CustomExecutableSettingsUI(project : Project) : SettingsEditor<CustomExecu
     }
 
     override fun createEditor(): JComponent {
+        installWatcher(panel)
         return panel
     }
 
