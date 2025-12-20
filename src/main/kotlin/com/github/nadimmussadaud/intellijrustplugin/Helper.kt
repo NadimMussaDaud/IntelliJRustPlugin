@@ -2,19 +2,20 @@ package com.github.nadimmussadaud.intellijrustplugin
 
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.project.Project
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 
 class Helper {
     data class SdkChoice(val id: String, val label: String, val path: String? = null) {
-        override fun toString() = path.toString()
+        override fun toString() = label
     }
 
-    fun discoverRustToolchains(project: com.intellij.openapi.project.Project?, onDone: (List<SdkChoice>) -> Unit) {
-        object : Task.Backgroundable(project, "Discovering Rust toolchains", false) {
-            private val out = mutableListOf<SdkChoice>()
+    fun discoverRustToolchains(project: Project?, onDone: (List<SdkChoice>) -> Unit) {
+        object : Task.Backgroundable(project, "Discovering Rust toolchains", true) {
+            private var out = mutableListOf<SdkChoice>()
 
             override fun run(indicator: ProgressIndicator) {
                 val home = System.getProperty("user.home") ?: ""
@@ -32,16 +33,18 @@ class Helper {
 
                 // Find rustc/cargo on PATH directories
                 for (dir in pathEnv.split(sep)) {
+                    indicator.checkCanceled()
                     if (dir.isBlank()) continue
                     try {
                         val dirPath = Paths.get(dir)
                         for (ext in exts) {
+                            indicator.checkCanceled()
                             val r = dirPath.resolve("rustc$ext")
                             val c = dirPath.resolve("cargo$ext")
                             if (Files.isRegularFile(r) && Files.isExecutable(r)) checkAndAdd("rustc", r)
                             if (Files.isRegularFile(c) && Files.isExecutable(c)) checkAndAdd("cargo", c)
                         }
-                    } catch (_: Exception) { /* ignore invalid PATH entries */ }
+                    } catch ( e : ProcessCanceledException) { throw e }
                 }
 
                 // Look in ~/.cargo/bin and ~/.rustup/toolchains/*/bin
@@ -58,6 +61,7 @@ class Helper {
                     if (Files.isDirectory(rustupRoot)) {
                         Files.newDirectoryStream(rustupRoot).use { stream ->
                             for (child in stream) {
+                                indicator.checkCanceled()
                                 val bin = child.resolve("bin")
                                 if (Files.isDirectory(bin)) {
                                     for (ext in exts) checkAndAdd("rustc", bin.resolve("rustc$ext"))
@@ -66,17 +70,16 @@ class Helper {
                             }
                         }
                     }
-                } catch (_: Exception) {}
+                } catch ( e : ProcessCanceledException) { throw e }
 
                 // Deduplicate by id/path
-                val deduped = out.distinctBy { it.id }
-
-                // return on EDT
-                ApplicationManager.getApplication().invokeLater {
-                    onDone(deduped)
-                }
+                out = out.distinctBy { it.id }.toMutableList()
             }
+
+            override fun onSuccess() {
+                onDone(out)
+            }
+
         }.queue()
     }
-
 }

@@ -50,10 +50,25 @@ class CustomExecutableSettingsUI(project : Project) : SettingsEditor<CustomExecu
             }
         }
 
-        customExecutableField.isEditable = false
+        executableTypesDropdown.isEditable = false
         executableTypesDropdown.setPrototypeDisplayValue("rustc — /home/user/.rustup/toolchains/stable-.../bin/rustc")
-        executableTypesDropdown.preferredWidth = JBUI.scale(480)
 
+        // Set minimal width/columns for fields going with IntelliJ Guidelines
+        executableTypesDropdown.preferredWidth = JBUI.scale(480)
+        customExecutableField.textField.columns = 100 // 100 characters
+        argumentsField.columns = 100 // 100 characters
+
+        // Setting accessibility for fields
+        executableTypesDropdown.accessibleContext.accessibleName = "Executable Types"
+        customExecutableField.accessibleContext.accessibleName = "Executable Name"
+        argumentsField.accessibleContext.accessibleName = "Arguments for executable"
+
+        // Tips for filling the camps
+        executableTypesDropdown.toolTipText = "Choose rustc/cargo from PATH"
+        customExecutableField.toolTipText = "Executable file to run"
+        argumentsField.toolTipText = "Command-line arguments"
+
+        // Temporary placement for when looking for
         val loadingModel = DefaultComboBoxModel(arrayOf("Looking for rustc/cargo..."))
         executableTypesDropdown.model = loadingModel
 
@@ -62,24 +77,26 @@ class CustomExecutableSettingsUI(project : Project) : SettingsEditor<CustomExecu
             fireEditorStateChanged()
         }
 
+        // Setting labels for accessibility
+        val execTypeLabel = JBLabel("Executable type:")
+        execTypeLabel.labelFor = executableTypesDropdown
+        val execFileLabel = JBLabel("Executable file:")
+        execFileLabel.labelFor = customExecutableField
+        val argsLabel = JBLabel("Arguments:")
+        argsLabel.labelFor = argumentsField
+
         panel = FormBuilder.createFormBuilder()
             .addLabeledComponent(
-                JBLabel("Executable type:"),
-                executableTypesDropdown,
-                1,
-                false
+                execTypeLabel,
+                executableTypesDropdown
             )
             .addLabeledComponent(
-                JBLabel("Executable File:"),
-                customExecutableField,
-                1,
-                false
+                execFileLabel,
+                customExecutableField
             )
             .addLabeledComponent(
-                JBLabel("Arguments:"),
-                argumentsField,
-                1,
-                false
+                argsLabel,
+                argumentsField
             )
             .panel
     }
