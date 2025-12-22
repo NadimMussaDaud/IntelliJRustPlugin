@@ -46,6 +46,9 @@ class CustomExecutableSettingsUI(project : Project) : SettingsEditor<CustomExecu
 
         executableTypesDropdown.addItemListener { e ->
             if(e.stateChange == ItemEvent.SELECTED) {
+                val isCustom = executableTypesDropdown.selectedItem.toString() != "Custom Executable"
+                customExecutableField.isEnabled = isCustom
+                customExecutableField.isEditable = isCustom
                 fireEditorStateChanged()
             }
         }
@@ -55,8 +58,6 @@ class CustomExecutableSettingsUI(project : Project) : SettingsEditor<CustomExecu
 
         // Set minimal width/columns for fields going with IntelliJ Guidelines
         executableTypesDropdown.preferredWidth = JBUI.scale(480)
-        customExecutableField.textField.columns = 60 // characters width
-        argumentsField.columns = 60 // characters width
 
         // Setting accessibility for fields
         executableTypesDropdown.accessibleContext.accessibleName = "Executable type"

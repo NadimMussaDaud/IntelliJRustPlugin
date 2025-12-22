@@ -9,13 +9,13 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 class Helper {
-    data class SdkChoice(val id: String, val label: String, val path: String? = null) {
+    data class ExecChoice(val id: String, val label: String, val path: String? = null) {
         override fun toString() = label
     }
 
-    fun discoverRustToolchains(project: Project?, onDone: (List<SdkChoice>) -> Unit) {
+    fun discoverRustToolchains(project: Project?, onDone: (List<ExecChoice>) -> Unit) {
         object : Task.Backgroundable(project, "Discovering Rust toolchains", true) {
-            private var out = mutableListOf<SdkChoice>()
+            private var out = mutableListOf<ExecChoice>()
 
             override fun run(indicator: ProgressIndicator) {
                 val home = System.getProperty("user.home") ?: ""
@@ -27,7 +27,7 @@ class Helper {
                 fun checkAndAdd(labelPrefix: String, p: java.nio.file.Path) {
                     if (Files.isRegularFile(p) && Files.isExecutable(p)) {
                         val pathStr = p.toAbsolutePath().toString()
-                        out.add(SdkChoice(pathStr, "$labelPrefix — $pathStr", pathStr))
+                        out.add(ExecChoice(pathStr, "$labelPrefix — $pathStr", pathStr))
                     }
                 }
 
@@ -41,8 +41,8 @@ class Helper {
                             indicator.checkCanceled()
                             val r = dirPath.resolve("rustc$ext")
                             val c = dirPath.resolve("cargo$ext")
-                            if (Files.isRegularFile(r) && Files.isExecutable(r)) checkAndAdd("rustc", r)
-                            if (Files.isRegularFile(c) && Files.isExecutable(c)) checkAndAdd("cargo", c)
+                            if (Files.isRegularFile(r) && Files.isExecutable(r)) checkAndAdd("RUSTC", r)
+                            if (Files.isRegularFile(c) && Files.isExecutable(c)) checkAndAdd("CARGO", c)
                         }
                     } catch ( e : ProcessCanceledException) { throw e }
                 }
@@ -51,8 +51,8 @@ class Helper {
                 try {
                     val cargoBin = Paths.get(home, ".cargo", "bin")
                     if (Files.isDirectory(cargoBin)) {
-                        for (ext in exts) checkAndAdd("rustc", cargoBin.resolve("rustc$ext"))
-                        for (ext in exts) checkAndAdd("cargo", cargoBin.resolve("cargo$ext"))
+                        for (ext in exts) checkAndAdd("RUSTC", cargoBin.resolve("rustc$ext"))
+                        for (ext in exts) checkAndAdd("CARGO", cargoBin.resolve("cargo$ext"))
                     }
                 } catch (_: Exception) {}
 
@@ -64,8 +64,8 @@ class Helper {
                                 indicator.checkCanceled()
                                 val bin = child.resolve("bin")
                                 if (Files.isDirectory(bin)) {
-                                    for (ext in exts) checkAndAdd("rustc", bin.resolve("rustc$ext"))
-                                    for (ext in exts) checkAndAdd("cargo", bin.resolve("cargo$ext"))
+                                    for (ext in exts) checkAndAdd("RUSTC", bin.resolve("rustc$ext"))
+                                    for (ext in exts) checkAndAdd("CARGO", bin.resolve("cargo$ext"))
                                 }
                             }
                         }
@@ -74,6 +74,9 @@ class Helper {
 
                 // Deduplicate by id/path
                 out = out.distinctBy { it.id }.toMutableList()
+
+                // Add the option for a custom executable
+                out.add(ExecChoice("Custom", "Custom Executable", null))
             }
 
             override fun onSuccess() {
