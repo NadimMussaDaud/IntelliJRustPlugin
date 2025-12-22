@@ -46,7 +46,7 @@ class CustomExecutableSettingsUI(project : Project) : SettingsEditor<CustomExecu
 
         executableTypesDropdown.addItemListener { e ->
             if(e.stateChange == ItemEvent.SELECTED) {
-                val isCustom = executableTypesDropdown.selectedItem.toString() != "Custom Executable"
+                val isCustom = executableTypesDropdown.selectedItem.toString() == "Custom Executable"
                 customExecutableField.isEnabled = isCustom
                 customExecutableField.isEditable = isCustom
                 fireEditorStateChanged()
@@ -54,6 +54,7 @@ class CustomExecutableSettingsUI(project : Project) : SettingsEditor<CustomExecu
         }
 
         executableTypesDropdown.isEditable = false
+        customExecutableField.isEnabled = false
         executableTypesDropdown.setPrototypeDisplayValue("rustc — /home/user/.rustup/toolchains/stable-.../bin/rustc")
 
         // Set minimal width/columns for fields going with IntelliJ Guidelines

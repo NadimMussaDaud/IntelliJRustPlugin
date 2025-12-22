@@ -24,16 +24,17 @@ class CustomExecutableRunConfig(
     var arguments: String? = null
 
     override fun checkConfiguration() {
-
-        if(customExecutablePath == null || customExecutablePath!!.isBlank()) {
-            throw RuntimeConfigurationException("Please specify a custom executable path")
-        }
-        val file = File(customExecutablePath!!)
-        if(!file.exists()) {
-            throw RuntimeConfigurationException("File specified as custom executable doesn't exist")
-        }
-        if(!file.canExecute()) {
-            throw RuntimeConfigurationException("File specified as custom executable is not executable.")
+        if (executableType == "Custom Executable") {
+            if(customExecutablePath == null || customExecutablePath!!.isBlank()) {
+                throw RuntimeConfigurationException("Please specify a custom executable path")
+            }
+            val file = File(customExecutablePath!!)
+            if(!file.exists()) {
+                throw RuntimeConfigurationException("File specified as custom executable doesn't exist")
+            }
+            if(!file.canExecute()) {
+                throw RuntimeConfigurationException("File specified as custom executable is not executable.")
+            }
         }
     }
 

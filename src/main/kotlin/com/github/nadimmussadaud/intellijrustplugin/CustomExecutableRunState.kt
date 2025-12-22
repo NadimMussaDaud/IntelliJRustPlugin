@@ -13,7 +13,6 @@ class CustomExecutableRunState(
 ) : CommandLineState(executor) {
 
     override fun startProcess(): ProcessHandler {
-        TODO("Not yet implemented")
         val params = ParametersListUtil.parse(configuration.arguments ?: "")
         val exePath = resolveExecutable()
         val cmd = GeneralCommandLine(exePath)
@@ -24,8 +23,10 @@ class CustomExecutableRunState(
     }
 
     private fun resolveExecutable(): String {
-        // You stored executableType as a String currently.
-        // Decide your convention: either "rustc", "cargo", or "CUSTOM"
-        TODO("Not yet implemented")
+        return if(configuration.executableType == "Custom Executable") {
+            configuration.customExecutablePath.toString()
+        } else {
+            configuration.executableType.split(" ").last()
+        }
     }
 }
