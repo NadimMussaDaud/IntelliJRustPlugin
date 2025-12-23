@@ -32,7 +32,7 @@ class CustomExecutableSettingsUI(project : Project) : SettingsEditor<CustomExecu
     private val argsLabel = JBLabel("Arguments:")
     private val warningLabel = JBLabel().apply {
         icon = AllIcons.General.Warning
-        foreground = JBColor.RED
+        foreground = JBColor.YELLOW
         isVisible = false
     }
 
