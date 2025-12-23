@@ -74,9 +74,6 @@ class Helper {
 
                 // Deduplicate by id/path
                 out = out.distinctBy { it.id }.toMutableList()
-
-                // Add the option for a custom executable
-                out.add(ExecChoice("Custom", "Custom Executable", null))
             }
 
             override fun onSuccess() {

@@ -1,5 +1,6 @@
 package com.github.nadimmussadaud.intellijrustplugin
 
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
@@ -7,6 +8,7 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.ComponentWithBrowseButton
 import com.intellij.openapi.ui.TextComponentAccessor
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.util.preferredWidth
@@ -19,13 +21,41 @@ import javax.swing.JPanel
 
 
 class CustomExecutableSettingsUI(project : Project) : SettingsEditor<CustomExecutableRunConfig>() {
+    private val LOADING = "Looking for rustc/cargo..."
+    private val CUSTOM= "Custom Executable"
+
     private val executableTypesDropdown = ComboBox<String>()
     private val customExecutableField = TextFieldWithBrowseButton()
     private val argumentsField = JBTextField()
+    private val execTypeLabel = JBLabel("Executable type:")
+    private val execFileLabel = JBLabel("Executable file:")
+    private val argsLabel = JBLabel("Arguments:")
+    private val warningLabel = JBLabel().apply {
+        icon = AllIcons.General.Warning
+        foreground = JBColor.RED
+        isVisible = false
+    }
 
     private val panel : JPanel
 
     init {
+
+        panel = FormBuilder.createFormBuilder()
+            .addComponent(warningLabel)
+            .addLabeledComponent(
+                execTypeLabel,
+                executableTypesDropdown
+            )
+            .addLabeledComponent(
+                execFileLabel,
+                customExecutableField
+            )
+            .addLabeledComponent(
+                argsLabel,
+                argumentsField
+            )
+            .panel
+
         val descriptor =
             FileChooserDescriptorFactory.createSingleFileDescriptor()
         descriptor.title = "Select Executable File"
@@ -71,36 +101,35 @@ class CustomExecutableSettingsUI(project : Project) : SettingsEditor<CustomExecu
         argumentsField.toolTipText = "Command-line arguments"
 
         // Temporary placement for when looking for
-        val loadingModel = DefaultComboBoxModel(arrayOf("Looking for rustc/cargo..."))
+        val loadingModel = DefaultComboBoxModel(arrayOf(LOADING))
         executableTypesDropdown.model = loadingModel
 
         Helper().discoverRustToolchains(project) { choices ->
-            executableTypesDropdown.model = DefaultComboBoxModel(choices.map { it.toString() }.toTypedArray())
+            if(choices.isEmpty()) {
+                warningLabel.text = "No rustc/cargo executables were found in PATH (or standard rustup locations)."
+                warningLabel.isVisible = true
+
+                // Set execTypesDropdown to Custom and Block it.
+                executableTypesDropdown.model = DefaultComboBoxModel(arrayOf(CUSTOM))
+                executableTypesDropdown.selectedItem = CUSTOM
+                executableTypesDropdown.isEnabled = false
+
+                customExecutableField.isEnabled = true
+            } else {
+                val items = choices.map { it.toString() }.toMutableList()
+                items.add(CUSTOM)
+                executableTypesDropdown.model = DefaultComboBoxModel(items.toTypedArray())
+            }
+            panel.revalidate()
+            panel.repaint()
             fireEditorStateChanged()
         }
 
         // Setting labels for accessibility
-        val execTypeLabel = JBLabel("Executable type:")
         execTypeLabel.labelFor = executableTypesDropdown
-        val execFileLabel = JBLabel("Executable file:")
         execFileLabel.labelFor = customExecutableField
-        val argsLabel = JBLabel("Arguments:")
         argsLabel.labelFor = argumentsField
 
-        panel = FormBuilder.createFormBuilder()
-            .addLabeledComponent(
-                execTypeLabel,
-                executableTypesDropdown
-            )
-            .addLabeledComponent(
-                execFileLabel,
-                customExecutableField
-            )
-            .addLabeledComponent(
-                argsLabel,
-                argumentsField
-            )
-            .panel
     }
 
     override fun resetEditorFrom(config: CustomExecutableRunConfig) {
